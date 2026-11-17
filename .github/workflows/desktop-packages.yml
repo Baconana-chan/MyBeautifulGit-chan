@@ -1,0 +1,148 @@
+name: desktop-packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Package version label (for example 0.1.0 or 0.1.0-kun.1)"
+        required: false
+        default: "0.1.0-dev"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-packages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Windows msi/exe
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      PACKAGE_ARCH: x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Resolve package version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: bash packaging/resolve-version.sh
+
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: |
+          if (-not (Get-Command candle.exe -ErrorAction SilentlyContinue)) {
+            choco install wixtoolset --version=3.14.1 -y --no-progress --allow-downgrade
+            $candle = Get-ChildItem "C:\Program Files (x86)\WiX Toolset*\bin\candle.exe" |
+              Select-Object -First 1
+            if ($candle) {
+              $candle.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+            }
+          }
+
+      - name: Build Windows packages
+        shell: pwsh
+        run: pwsh -NoProfile -File packaging/windows.ps1
+
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mybeautifulgit-chan-windows-x64-${{ env.APP_VERSION }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
+
+  linux:
+    name: Linux deb/rpm/AppImage
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PACKAGE_ARCH: x86_64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Resolve package version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: bash packaging/resolve-version.sh
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fakeroot rpm
+
+      - name: Build Linux packages
+        shell: bash
+        run: bash packaging/linux.sh
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mybeautifulgit-chan-linux-x86_64-${{ env.APP_VERSION }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
+
+  macos:
+    name: macOS dmg (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x64
+    env:
+      PACKAGE_ARCH: ${{ matrix.arch }}
+      MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+      MACOS_SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Resolve package version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: bash packaging/resolve-version.sh
+
+      - name: Build macOS package
+        shell: bash
+        run: bash packaging/macos.sh
+
+      - name: Upload macOS packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: mybeautifulgit-chan-macos-${{ matrix.arch }}-${{ env.APP_VERSION }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30

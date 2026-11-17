@@ -1,0 +1,13 @@
+product: android/app
+
+dependencies:
+  - //shared
+  - $libs.androidx.activity.compose
+  - $compose.preview
+  - $compose.uiTooling
+
+settings:
+  compose: enabled
+  android:
+    namespace: org.baconana.mybeautifulgit_chan
+    applicationId: org.baconana.mybeautifulgit_chan
