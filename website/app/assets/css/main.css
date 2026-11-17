@@ -600,11 +600,54 @@ main {
   font-size: 0.9em;
 }
 
-.prose pre {
+.code-block {
   margin: 0 0 16px;
-  padding: 10px 12px;
   border: 1px solid var(--border);
   background: var(--panel-alt);
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 6px 3px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--faint);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.code-copy {
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.code-copy:hover {
+  border-color: var(--green-dim);
+  background: var(--raised);
+  color: var(--green);
+}
+
+.code-copy.done {
+  border-color: var(--green-dim);
+  color: var(--green);
+}
+
+.prose pre {
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
   overflow-x: auto;
   line-height: 1.55;
 }

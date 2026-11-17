@@ -1,9 +1,21 @@
+import { terminalTheme } from './theme/terminal'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-11-17',
 
   modules: ['@nuxt/content'],
 
   css: ['~/assets/css/main.css'],
+
+  content: {
+    build: {
+      markdown: {
+        highlight: {
+          theme: { default: terminalTheme },
+        },
+      },
+    },
+  },
 
   app: {
     head: {
@@ -18,7 +30,11 @@ export default defineNuxtConfig({
             'A desktop Git client that shows the real command behind every action and tells you how to undo it.',
         },
       ],
-      link: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+      ],
     },
   },
 

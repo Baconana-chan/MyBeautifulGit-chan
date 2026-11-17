@@ -1,0 +1,38 @@
+# git-chan.baconana.com — Nuxt/Nitro site behind Caddy.
+#
+# Install:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Before the first request: an A/AAAA record for git-chan.baconana.com must point at
+# this VPS, and ports 80/443 must be open. Caddy obtains and renews the certificate
+# itself (ACME over HTTP-01/TLS-ALPN), so nothing about TLS is configured here.
+
+git-chan.baconana.com {
+	encode zstd gzip
+
+	# Nitro serves hashed build assets from /_nuxt; they never change in place.
+	@immutable path /_nuxt/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	header {
+		# No includeSubDomains: other baconana.com hosts may not be HTTPS yet.
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	# PM2 binds Nitro to 127.0.0.1:4548 (see deploy/ecosystem.config.cjs).
+	reverse_proxy 127.0.0.1:4548
+
+	# /var/log/caddy must exist and be writable by the caddy user before reload.
+	log {
+		output file /var/log/caddy/git-chan.baconana.com.log {
+			roll_size 20MiB
+			roll_keep 5
+		}
+		format json
+	}
+}
