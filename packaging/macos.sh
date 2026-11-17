@@ -9,7 +9,7 @@ CHANNEL="${RELEASE_CHANNEL:-chan}"
 ARCH="${PACKAGE_ARCH:-$(uname -m)}"
 case "$ARCH" in
     arm64|aarch64) ARCH="arm64" ;;
-    x86_64|amd64) ARCH="x64" ;;
+    x64|x86_64|amd64) ARCH="x64" ;;
     *) echo "Unsupported macOS architecture: $ARCH" >&2; exit 1 ;;
 esac
 
@@ -27,7 +27,7 @@ fi
 
 rm -rf "$DIST"
 mkdir -p "$DIST"
-"$ROOT/kotlin" package -m desktopApp -f executable-jar
+bash "$ROOT/kotlin" package -m desktopApp -f executable-jar
 test -f "$JAR" || { echo "Executable jar not found: $JAR" >&2; exit 1; }
 "$PYTHON" "$ROOT/packaging/prepare-runtime.py" --jar "$JAR" --output "$INPUT"
 

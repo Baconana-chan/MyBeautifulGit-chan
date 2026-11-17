@@ -35,7 +35,7 @@ fi
 
 rm -rf "$DIST"
 mkdir -p "$DIST"
-"$ROOT/kotlin" package -m desktopApp -f executable-jar
+bash "$ROOT/kotlin" package -m desktopApp -f executable-jar
 test -f "$JAR" || { echo "Executable jar not found: $JAR" >&2; exit 1; }
 "$PYTHON" "$ROOT/packaging/prepare-runtime.py" --jar "$JAR" --output "$INPUT"
 
