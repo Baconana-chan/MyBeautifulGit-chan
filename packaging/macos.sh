@@ -110,12 +110,38 @@ else
 fi
 
 DMG="$DIST/$APP_NAME-$APP_VERSION-macos-$ARCH.dmg"
-DMG_ROOT="$BUILD_DIR/dmg-root"
+
+# Stage outside the workspace: hdiutil writes the image through a temporary mount and
+# reports "Resource busy" when something touches the source tree mid-write (Spotlight,
+# antivirus, file watchers). The workspace is where that happens most often on CI.
+DMG_ROOT="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/mybeautifulgit-dmg-$$"
 rm -rf "$DMG_ROOT" "$DMG"
 mkdir -p "$DMG_ROOT"
+trap 'rm -rf "$DMG_ROOT"' EXIT
 ditto "$APP_BUNDLE" "$DMG_ROOT/$APP_NAME.app"
 ln -s /Applications "$DMG_ROOT/Applications"
-hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG"
+
+# A previous run can leave a volume with this name mounted, which also blocks create.
+if [[ -d "/Volumes/$APP_NAME" ]]; then
+    hdiutil detach "/Volumes/$APP_NAME" -force >/dev/null 2>&1 || true
+    sleep 1
+fi
+
+created=false
+for attempt in 1 2 3; do
+    if hdiutil create -volname "$APP_NAME" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG"; then
+        created=true
+        break
+    fi
+    echo "::warning::hdiutil create failed on attempt $attempt; retrying" >&2
+    rm -f "$DMG"
+    sleep 3
+done
+if [[ "$created" != true ]]; then
+    echo "hdiutil could not create $DMG" >&2
+    hdiutil info >&2 || true
+    exit 1
+fi
 
 if [[ "$signed" == true ]]; then
     codesign --force --timestamp --sign "$IDENTITY" "$DMG"

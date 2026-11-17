@@ -1,11 +1,15 @@
-# User Guide
+---
+title: User Guide
+description: Task-oriented workflows for MyBeautifulGit-chan: open a repository, commit, synchronize, rewrite history and recover from it.
+---
 
 This guide answers “how do I …?” for MyBeautifulGit-chan. It is task-oriented: open a
 repository, make a commit, synchronize, rewrite history, and — most importantly — understand what
 is at risk and how to get back.
 
-For installation, build commands and the feature overview see [README.md](../README.md). Product
-milestones are in [TODO.md](../TODO.md); security notes are in [SECURITY_TODO.md](../SECURITY_TODO.md).
+For installation, build commands and the feature overview see the repository README. Product
+milestones are tracked in `TODO.md`; security notes live in `SECURITY_TODO.md`. Both files sit in
+the repository root.
 
 Commands in this guide assume Git 2.30+ and a terminal in the repository root. The app uses the
 system Git executable, so the equivalent command is always the source of truth. Replace

@@ -531,7 +531,7 @@ EOL: upstream держит security-ветки неопределённое вр
       ручная проверка релизов реализованы и покрыты тестами. Скачивание и установка обновлений
       ещё не реализованы; проверка на реальном опубликованном релизе не проводилась.
 - [x] Документация: «как сделать X», в т.ч. раздел «опасные операции и как откатиться».
-      `docs/USER_GUIDE.md`: открытие/clone/init, stage/commit, ветки и sync, merge/rebase,
+      `website/content/docs/index.md`: открытие/clone/init, stage/commit, ветки и sync, merge/rebase,
       stash/tags/worktrees/submodules, поиск/reflog/bisect, Custom Git Host, AI, troubleshooting;
       отдельный большой раздел с backup refs, reflog, patch/stash, bundles и разбором
       reset/force-push/filter-repo/gc/prune. Ссылка добавлена в README; язык — English,

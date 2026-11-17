@@ -451,7 +451,7 @@ Detailed milestones and acceptance criteria live in [TODO.md](./TODO.md) (curren
 
 ## Documentation
 
-- [docs/USER_GUIDE.md](./docs/USER_GUIDE.md) — task-oriented “how do I …?” workflows, including
+- [website/content/docs/index.md](./website/content/docs/index.md) — task-oriented “how do I …?” workflows, including
   dangerous operations, backup refs, reflog, filter-repo recovery and troubleshooting.
 - [TODO-1-1.md](./TODO-1-1.md) — 1.1 roadmap: GitHub/GitLab adapters, provider foundation,
   contribution UI, German localization and explicitly deferred work.

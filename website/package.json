@@ -1,0 +1,24 @@
+{
+  "name": "mybeautifulgit-chan-website",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.21.0 || ^24.11.0 || >=26.0.0"
+  },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "nuxt": "^4.5.1",
+    "vue": "^3.5.0",
+    "vue-router": "^4.5.0"
+  },
+  "dependencies": {
+    "@nuxt/content": "^3.17.0",
+    "better-sqlite3": "^13.2.0"
+  }
+}
