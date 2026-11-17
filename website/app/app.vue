@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
+const isDownload = computed(() => route.path.startsWith('/download'))
 const isDocs = computed(() => route.path.startsWith('/docs'))
 </script>
 
@@ -20,11 +21,14 @@ const isDocs = computed(() => route.path.startsWith('/docs'))
     </div>
 
     <nav class="tabs">
-      <NuxtLink to="/" class="tab" :class="{ active: !isDocs }">
+      <NuxtLink to="/" class="tab" :class="{ active: !isDocs && !isDownload }">
         <span class="num">1</span> Home
       </NuxtLink>
+      <NuxtLink to="/download" class="tab" :class="{ active: isDownload }">
+        <span class="num">2</span> Download
+      </NuxtLink>
       <NuxtLink to="/docs" class="tab" :class="{ active: isDocs }">
-        <span class="num">2</span> Docs
+        <span class="num">3</span> Docs
       </NuxtLink>
     </nav>
 
@@ -39,9 +43,20 @@ const isDocs = computed(() => route.path.startsWith('/docs'))
         <span class="hide-sm">GPL-2.0-only</span>
       </div>
       <div class="seg">
-        <span class="hide-sm">desktop · windows / macOS / linux</span>
-        <span>[q] close</span>
+        <a class="status-link" :href="REPO_URL" rel="noopener">github ↗</a>
+        <span class="hide-sm">[q] close</span>
       </div>
     </footer>
   </div>
 </template>
+
+<style scoped>
+.status-link {
+  color: inherit;
+  border-bottom: 1px dotted rgba(2, 4, 2, 0.45);
+}
+
+.status-link:hover {
+  border-bottom-style: solid;
+}
+</style>

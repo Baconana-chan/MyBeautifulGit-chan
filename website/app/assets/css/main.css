@@ -708,3 +708,48 @@ main {
   max-width: 100%;
   border: 1px solid var(--border);
 }
+
+/* ---------- download page ---------- */
+
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.os-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+}
+
+.os-body .btn {
+  justify-content: flex-start;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 12px;
+}
+
+.os-body .ext {
+  color: var(--faint);
+}
+
+.os-body .size {
+  margin-left: auto;
+  color: var(--faint);
+  font-size: 10.5px;
+}
+
+.os-body .btn.primary .ext,
+.os-body .btn.primary .size {
+  color: var(--black);
+  opacity: 0.6;
+}
+
+.os-note {
+  margin: 4px 0 0;
+  color: var(--faint);
+  font-size: 11.5px;
+  line-height: 1.5;
+}

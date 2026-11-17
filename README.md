@@ -14,16 +14,17 @@ not hidden behind artificial restrictions. They are explained, previewed, and ba
 
 <table align="center">
   <tr>
-    <td><img src="tEcjPkTR23.png" alt="mockup 1" width="440"></td>
-    <td><img src="ELw2eUUKfS.png" alt="mockup 2" width="440"></td>
+    <td><img src="tEcjPkTR23.png" alt="Start screen: open, clone or init a repository" width="440"></td>
+    <td><img src="ELw2eUUKfS.png" alt="Changes tab with unstaged files and the diff panel" width="440"></td>
   </tr>
   <tr>
-    <td><img src="BRPJKpyTPo.png" alt="mockup 3" width="440"></td>
-    <td><img src="java_cCakZk2leP.png" alt="mockup 4" width="440"></td>
+    <td><img src="BRPJKpyTPo.png" alt="Patches tab with export and mailbox options" width="440"></td>
+    <td><img src="java_cCakZk2leP.png" alt="Log tab with commit inspection and actions" width="440"></td>
   </tr>
 </table>
 
-<p align="center"><em>Early visual mockup, not a screenshot of the final UI.</em></p>
+<p align="center"><em>Screenshots from the desktop app (v0.1.0-dev): start screen, changes and diff,
+patches, log and inspect.</em></p>
 
 ## Contents
 
@@ -338,9 +339,10 @@ AndroidX implementations, so the packaged application starts outside the Amper b
 
 The workflow in `.github/workflows/desktop-packages.yml` runs on native Windows, Linux, macOS arm64
 and macOS Intel runners. It can be started manually (`workflow_dispatch`) or by pushing a `v*` tag;
-it uploads the packages as workflow artifacts and does not create a GitHub Release. The version input
-(or tag) becomes the display version; the numeric prefix is used for `jpackage`. A `-kun` or `-beta`
-suffix selects the `kun` channel.
+every run uploads the packages as workflow artifacts, and a tag push also attaches them — plus a
+combined `SHA256SUMS` — to the GitHub Release for that tag. The version input (or tag) becomes the
+display version; the numeric prefix is used for `jpackage`. A `-kun` or `-beta` suffix selects the
+`kun` channel.
 
 macOS signing and notarization use these repository secrets:
 
@@ -368,7 +370,7 @@ workflow.
 │   ├── test@android/        Android tests
 │   └── test@jvm/            JVM tests
 ├── packaging/               jpackage scripts, runtime preparation and icon assets
-├── docs/                    Task-oriented user guide and recovery notes
+├── website/                 Nuxt site: landing, download page and the user guide
 ├── .github/workflows/       GitHub Actions desktop package workflow
 ├── project.yaml             Kotlin project/module definition
 ├── libs.versions.toml       Dependency versions
@@ -378,7 +380,7 @@ workflow.
 ├── TODO.md                  Product notes, architecture and roadmap
 ├── TODO-1-1.md              Roadmap for 1.1: GitHub/GitLab adapters and German UI
 ├── SECURITY_TODO.md         Security review and hardening tracker
-└── mockup.png               Early visual mockup
+└── *.png                    Desktop screenshots used at the top of this README
 ```
 
 ## Configuration and local data
@@ -453,11 +455,13 @@ Detailed milestones and acceptance criteria live in [TODO.md](./TODO.md) (curren
 
 - [website/content/docs/index.md](./website/content/docs/index.md) — task-oriented “how do I …?” workflows, including
   dangerous operations, backup refs, reflog, filter-repo recovery and troubleshooting.
+- [website/TODO.md](./website/TODO.md) — site roadmap: AI commit-message proxy, site accounts and
+  the OAuth broker, per-provider review, deploy and operations.
 - [TODO-1-1.md](./TODO-1-1.md) — 1.1 roadmap: GitHub/GitLab adapters, provider foundation,
   contribution UI, German localization and explicitly deferred work.
 - [TODO.md](./TODO.md) — product manifest, architecture, milestones and acceptance criteria.
 - [SECURITY_TODO.md](./SECURITY_TODO.md) — security review, fixes and residual risks.
-- `mockup.png` — early UI mockup.
+- `*.png` — desktop screenshots embedded at the top of this README.
 
 ## License
 
