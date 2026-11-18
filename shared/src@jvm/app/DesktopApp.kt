@@ -93,7 +93,7 @@ fun DesktopApp(
     zoom: ZoomController,
     commandPalette: CommandPaletteController,
     showCustomTitleBar: Boolean = true,
-    titleBar: @Composable (String, (Int) -> Unit) -> Unit,
+    titleBar: @Composable (String, (Int) -> Unit, () -> Unit) -> Unit,
     onQuit: () -> Unit,
     droppedPath: String? = null,
     onDropConsumed: () -> Unit = {},
@@ -120,6 +120,7 @@ fun DesktopApp(
     var openError by remember { mutableStateOf<String?>(null) }
     var openRepositories by remember { mutableStateOf<List<Repository>>(emptyList()) }
     var activeRepositoryRoot by remember { mutableStateOf<String?>(null) }
+    var showHome by remember { mutableStateOf(false) }
     var sessionRestored by remember { mutableStateOf(false) }
     var dialog by remember { mutableStateOf<StartDialog?>(null) }
     val homeDirectory = remember { DirectoryBrowser.homeDirectory() }
@@ -163,6 +164,7 @@ fun DesktopApp(
         .firstOrNull { sameRepositoryRoot(it.root, activeRepositoryRoot) }
         ?.root
         ?: openRepositories.firstOrNull()?.root
+    val homeVisible = showHome || openRepositories.isEmpty()
     val latestRepositories by rememberUpdatedState(openRepositories)
     val latestActiveRoot by rememberUpdatedState(activeRepositoryRoot)
     val latestSessionRestored by rememberUpdatedState(sessionRestored)
@@ -217,6 +219,7 @@ fun DesktopApp(
 
     fun activateRepository(repository: Repository) {
         activeRepositoryRoot = repository.root
+        showHome = false
         openError = null
         commandPalette.close()
         focusManager.clearFocus(force = true)
@@ -247,6 +250,7 @@ fun DesktopApp(
                 }
                 if (existing == null) openRepositories = openRepositories + repo
                 activeRepositoryRoot = existing?.root ?: repo.root
+                showHome = false
                 openError = null
                 recent = runCatching { recentRepos.add(repo.root) }.getOrDefault(recent)
                 commandPalette.close()
@@ -700,7 +704,12 @@ fun DesktopApp(
             Box(Modifier.fillMaxSize()) {
                 Column(Modifier.fillMaxSize()) {
                     if (showCustomTitleBar) {
-                        titleBar(zoom.label) { delta -> zoom.step(delta) }
+                        titleBar(zoom.label, { delta -> zoom.step(delta) }) {
+                            settingsOpen = false
+                            showHome = true
+                            commandPalette.close()
+                            focusManager.clearFocus(force = true)
+                        }
                     }
 
                     Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -769,7 +778,7 @@ fun DesktopApp(
                                 detail = "reopening previous repository tabs",
                             )
 
-                            openRepositories.isNotEmpty() -> Column(Modifier.fillMaxSize()) {
+                            openRepositories.isNotEmpty() && !homeVisible -> Column(Modifier.fillMaxSize()) {
                                 RepositoryTabsBar(
                                     repositories = openRepositories,
                                     activeRoot = effectiveActiveRoot,
@@ -821,53 +830,70 @@ fun DesktopApp(
                             else -> {
                                 val current = discovery
                                 if (current != null) {
-                                    WelcomeScreen(
-                                        runtime = runtime,
-                                        discovery = current,
-                                        recent = recent,
-                                        errorText = openError,
-                                        onDismissError = { openError = null },
-                                        onOpen = { chooseRepository() },
-                                        onOpenRecent = { path ->
-                                            scope.launch { openPath(path) }
-                                        },
-                                        onForgetRecent = { path ->
-                                            recent = runCatching { recentRepos.remove(path) }
-                                                .getOrDefault(recent)
-                                        },
-                                        onClone = {
-                                            cloneTarget = homeDirectory
-                                            dialog = StartDialog.Clone
-                                        },
-                                        onInit = {
-                                            initPath = File(homeDirectory, "new-repository").path
-                                            dialog = StartDialog.Init
-                                        },
-                                        pickerMode = pickerMode,
-                                        onTogglePicker = {
-                                            setPickerMode(
-                                                if (pickerMode == DirectoryPickerMode.Custom) {
-                                                    DirectoryPickerMode.System
-                                                } else {
-                                                    DirectoryPickerMode.Custom
+                                    Column(Modifier.fillMaxSize()) {
+                                        if (openRepositories.isNotEmpty()) {
+                                            RepositoryTabsBar(
+                                                repositories = openRepositories,
+                                                activeRoot = null,
+                                                onSelect = { repository ->
+                                                    activateRepository(repository)
                                                 },
+                                                onClose = { repository ->
+                                                    closeRepository(repository.root)
+                                                },
+                                                onOpen = { chooseRepository() },
                                             )
-                                        },
-                                        language = language,
-                                        onLanguageChange = { setLanguage(it) },
-                                        onOpenSettings = { settingsOpen = true },
-                                        updateReminderDismissed =
-                                            dismissedGitVersion == runtime.version.key,
-                                        onUpdateGit = {
-                                            installError = null
-                                            updateDialogOpen = true
-                                        },
-                                        onDismissUpdateReminder = {
-                                            dismissedGitVersion = runtime.version.key
-                                            settings.saveDismissedGitVersion(runtime.version.key)
-                                        },
-                                        onQuit = onQuit,
-                                    )
+                                        }
+                                        Box(Modifier.weight(1f).fillMaxWidth()) {
+                                            WelcomeScreen(
+                                                runtime = runtime,
+                                                discovery = current,
+                                                recent = recent,
+                                                errorText = openError,
+                                                onDismissError = { openError = null },
+                                                onOpen = { chooseRepository() },
+                                                onOpenRecent = { path ->
+                                                    scope.launch { openPath(path) }
+                                                },
+                                                onForgetRecent = { path ->
+                                                    recent = runCatching { recentRepos.remove(path) }
+                                                        .getOrDefault(recent)
+                                                },
+                                                onClone = {
+                                                    cloneTarget = homeDirectory
+                                                    dialog = StartDialog.Clone
+                                                },
+                                                onInit = {
+                                                    initPath = File(homeDirectory, "new-repository").path
+                                                    dialog = StartDialog.Init
+                                                },
+                                                pickerMode = pickerMode,
+                                                onTogglePicker = {
+                                                    setPickerMode(
+                                                        if (pickerMode == DirectoryPickerMode.Custom) {
+                                                            DirectoryPickerMode.System
+                                                        } else {
+                                                            DirectoryPickerMode.Custom
+                                                        },
+                                                    )
+                                                },
+                                                language = language,
+                                                onLanguageChange = { setLanguage(it) },
+                                                onOpenSettings = { settingsOpen = true },
+                                                updateReminderDismissed =
+                                                    dismissedGitVersion == runtime.version.key,
+                                                onUpdateGit = {
+                                                    installError = null
+                                                    updateDialogOpen = true
+                                                },
+                                                onDismissUpdateReminder = {
+                                                    dismissedGitVersion = runtime.version.key
+                                                    settings.saveDismissedGitVersion(runtime.version.key)
+                                                },
+                                                onQuit = onQuit,
+                                            )
+                                        }
+                                    }
                                 } else {
                                     BootScreen()
                                 }

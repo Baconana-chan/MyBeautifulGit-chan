@@ -174,11 +174,12 @@ fun main() = application {
                 zoom = zoom,
                 commandPalette = commandPalette,
                 showCustomTitleBar = !nativeTitleBar,
-                titleBar = { zoomLabel, onZoom ->
+                titleBar = { zoomLabel, onZoom, onHome ->
                     Box(Modifier.fillMaxWidth().windowDrag(window)) {
                         GitChanTitleBar(
                             zoomLabel = zoomLabel,
                             onZoom = onZoom,
+                            onHome = onHome,
                             context = "root@localhost:~",
                             version = AppVersion.CURRENT_TAG,
                             onZoomReset = { zoom.reset() },

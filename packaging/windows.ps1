@@ -88,8 +88,9 @@ foreach ($format in $formats) {
             "--win-menu-group", $appName,
             "--win-shortcut",
             "--win-dir-chooser",
-            "--win-per-user-install",
-            "--win-upgrade-uuid", "2b6e0f7a-6e5c-4c1d-9a4d-0f6c7b8a9d21"
+            "--win-upgrade-uuid", "2b6e0f7a-6e5c-4c1d-9a4d-0f6c7b8a9d21",
+            # main.wxs override: same-version upgrades must replace the installed product.
+            "--resource-dir", (Join-Path $PSScriptRoot "wix")
         )
     }
     & $jpackage @jpackageArgs

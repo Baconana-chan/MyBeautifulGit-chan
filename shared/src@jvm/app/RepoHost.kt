@@ -3934,6 +3934,24 @@ private fun CommitBar(
     var aiRestorable by remember { mutableStateOf(false) }
     val stagedCount = controller.status?.stagedCount ?: 0
     val worktreeCount = controller.status?.unstagedCount ?: 0
+    val selectedCount = controller.selectedHunks.size
+    val action = when (controller.commitMode) {
+        CommitMode.Normal -> "COMMIT"
+        CommitMode.Fixup -> "FIXUP"
+        CommitMode.Squash -> "SQUASH"
+    }
+    val commitEnabled = !controller.busy && (selectedCount > 0 || controller.canCommit)
+    val submitCommit: () -> Unit = {
+        if (commitEnabled) {
+            scope.launch {
+                if (selectedCount > 0) {
+                    controller.commitSelectedHunks()
+                } else {
+                    controller.commit()
+                }
+            }
+        }
+    }
 
     fun cancelGeneration() {
         aiRequestId += 1
@@ -4014,7 +4032,7 @@ private fun CommitBar(
     Column(Modifier.fillMaxWidth()) {
         Divider()
         Row(
-            Modifier.fillMaxWidth().height(40.dp).background(Term.panel)
+            Modifier.fillMaxWidth().heightIn(min = 40.dp).background(Term.panel)
                 .padding(horizontal = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -4027,11 +4045,12 @@ private fun CommitBar(
             )
             Text("$", fontSize = 11.sp, fontFamily = Term.mono, fontWeight = FontWeight.Bold, color = Term.green)
             Spacer(Modifier.width(5.dp))
-            TermTextField(
+            TermGrowingTextField(
                 value = controller.commitMessage,
                 onValueChange = { controller.commitMessage = it },
                 placeholder = "commit message…",
                 modifier = Modifier.weight(1f),
+                onSubmit = if (commitEnabled) submitCommit else null,
             )
             Spacer(Modifier.width(5.dp))
             ActionButton(
@@ -4060,13 +4079,7 @@ private fun CommitBar(
             }
             Spacer(Modifier.width(4.dp))
             TermButton("g", "gpg", active = controller.sign) { controller.sign = !controller.sign }
-            Spacer(Modifier.width(7.dp))
-            val selectedCount = controller.selectedHunks.size
-            val action = when (controller.commitMode) {
-                CommitMode.Normal -> "COMMIT"
-                CommitMode.Fixup -> "FIXUP"
-                CommitMode.Squash -> "SQUASH"
-            }
+                        Spacer(Modifier.width(7.dp))
             ActionButton(
                 key = null,
                 label = when {
@@ -4075,16 +4088,8 @@ private fun CommitBar(
                     else -> action
                 },
                 primary = true,
-                enabled = !controller.busy && (selectedCount > 0 || controller.canCommit),
-                onClick = {
-                    scope.launch {
-                        if (selectedCount > 0) {
-                            controller.commitSelectedHunks()
-                        } else {
-                            controller.commit()
-                        }
-                    }
-                },
+                enabled = commitEnabled,
+                onClick = submitCommit,
             )
         }
         if (aiPreparing || aiGenerating || aiError != null || (aiRestorable && controller.commitMessage.isNotBlank())) {

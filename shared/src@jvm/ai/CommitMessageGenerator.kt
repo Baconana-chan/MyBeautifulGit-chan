@@ -176,9 +176,21 @@ class CommitMessageGenerator(
             )
         }
         val content = parseCompletionContent(body)
-            ?: throw AiGenerationException("The AI response did not contain a commit message.")
+        if (content == null) {
+            throw AiGenerationException(
+                "AI endpoint returned HTTP ${response.statusCode()} but no commit message" +
+                    responseDiagnostic(body),
+            )
+        }
         return sanitizeCommitMessage(content)
-            ?: throw AiGenerationException("The AI returned an empty or unusable commit message.")
+            ?: throw AiGenerationException(
+                "The AI returned an empty or unusable commit message (HTTP ${response.statusCode()})" +
+                    if (content.isBlank()) {
+                        responseDiagnostic(body)
+                    } else {
+                        " (response text: ${excerpt(content)})."
+                    },
+            )
     }
 
     private suspend fun send(request: HttpRequest): HttpResponse<String> =
@@ -454,6 +466,74 @@ class CommitMessageGenerator(
                 else -> null
             }
         }
+
+        /**
+         * Explains why a successful HTTP response did not contain a commit message.
+         * Kept short and redacted: it is shown in the error banner.
+         */
+        private fun responseDiagnostic(body: String): String {
+            val trimmed = body.trim()
+            if (trimmed.isEmpty()) return " (the response body is empty)."
+            if (trimmed.startsWith("<")) {
+                return " (the response is HTML, not JSON: ${excerpt(trimmed)})."
+            }
+            if (trimmed.startsWith("data:")) {
+                return " (the response looks like a stream; a non-streamed JSON completion is required)."
+            }
+            val root = runCatching { json.parseToJsonElement(trimmed) as? JsonObject }.getOrNull()
+                ?: return " (the response is not JSON: ${excerpt(trimmed)})."
+            val errorMessage = ((root["error"] as? JsonObject)?.get("message") as? JsonPrimitive)
+                ?.contentOrNull
+            if (!errorMessage.isNullOrBlank()) {
+                return " (provider error: ${excerpt(errorMessage)})."
+            }
+            val choices = root["choices"] as? JsonArray
+            if (choices == null) {
+                if (root["message"] is JsonObject) {
+                    return " (no 'choices' in the response; it looks like Ollama's native /api/chat. " +
+                        "Use the OpenAI-compatible /v1/chat/completions endpoint)."
+                }
+                val objectType = (root["object"] as? JsonPrimitive)?.contentOrNull
+                if (objectType == "response" || root["output"] is JsonArray) {
+                    return " (no 'choices' in the response; it looks like the Responses API. " +
+                        "Use /v1/chat/completions)."
+                }
+                return " (no 'choices' in the response; keys: ${root.keys.take(6).joinToString(", ")})."
+            }
+            val choice = choices.firstOrNull() as? JsonObject
+                ?: return " ('choices' is empty)."
+            if (choice["text"] is JsonPrimitive) {
+                return " (the response has 'choices[].text', which looks like the legacy " +
+                    "/v1/completions endpoint; use /v1/chat/completions)."
+            }
+            val message = choice["message"] as? JsonObject
+                ?: return " (the choice has no 'message'; keys: ${choice.keys.take(6).joinToString(", ")})."
+            val refusal = (message["refusal"] as? JsonPrimitive)?.contentOrNull
+            if (!refusal.isNullOrBlank()) {
+                return " (the model refused: ${excerpt(refusal)})."
+            }
+            val finish = (choice["finish_reason"] as? JsonPrimitive)?.contentOrNull
+            val reasoning = !((message["reasoning_content"] as? JsonPrimitive)?.contentOrNull)
+                .isNullOrBlank()
+            val facts = buildList {
+                if (!finish.isNullOrBlank()) add("finish_reason=$finish")
+                if (reasoning) add("only reasoning_content was returned")
+            }.joinToString("; ")
+            val advice = when {
+                finish == "length" ->
+                    " The model hit max_tokens before writing an answer; raise the output limit " +
+                        "or choose a non-reasoning model."
+                reasoning ->
+                    " The model returned reasoning but no final text; choose a non-reasoning " +
+                        "model or raise max_tokens."
+                else -> ""
+            }
+            return " (the message content is empty" +
+                (if (facts.isBlank()) "" else "; $facts") + ")." + advice
+        }
+
+        private fun excerpt(text: String, limit: Int = 160): String =
+            redactSecrets(text).replace(Regex("\\s+"), " ").trim().take(limit)
 
         private fun providerError(body: String): String? {
             val root = runCatching { json.parseToJsonElement(body) as? JsonObject }.getOrNull()

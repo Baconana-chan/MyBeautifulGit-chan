@@ -34,6 +34,13 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -98,6 +105,77 @@ fun TermTextField(
             keyboardActions = KeyboardActions(onDone = { onSubmit?.invoke() }),
             modifier = Modifier.fillMaxWidth()
                 .onFocusChanged { focused = it.isFocused }
+                .semantics { contentDescription = placeholder },
+        )
+    }
+}
+
+/**
+ * Multiline input that grows with its content and scrolls after [maxLines].
+ * Enter inserts a newline; Ctrl/Cmd+Enter calls [onSubmit].
+ */
+@Composable
+fun TermGrowingTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    minLines: Int = 1,
+    maxLines: Int = 5,
+    onSubmit: (() -> Unit)? = null,
+) {
+    var focused by remember { mutableStateOf(false) }
+    val lineHeight = 14.dp
+    val verticalPadding = 5.dp
+    val firstLine = minLines.coerceAtLeast(1)
+    val lastLine = maxLines.coerceAtLeast(firstLine)
+    Box(
+        modifier.heightIn(
+            min = lineHeight * firstLine + verticalPadding * 2,
+            max = lineHeight * lastLine + verticalPadding * 2,
+        )
+            .background(Term.black)
+            .border(1.dp, Term.border)
+            .border(1.dp, if (focused) Term.focus else androidx.compose.ui.graphics.Color.Transparent)
+            .padding(horizontal = 8.dp, vertical = verticalPadding),
+    ) {
+        if (value.isEmpty()) {
+            Text(
+                placeholder,
+                fontSize = 10.sp,
+                fontFamily = Term.mono,
+                color = Term.faint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.clearAndSetSemantics { },
+            )
+        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = false,
+            textStyle = TextStyle(
+                fontSize = 10.sp,
+                lineHeight = 14.sp,
+                fontFamily = Term.mono,
+                color = Term.white,
+            ),
+            cursorBrush = SolidColor(Term.green),
+            modifier = Modifier.fillMaxWidth()
+                .onFocusChanged { focused = it.isFocused }
+                .onPreviewKeyEvent { event ->
+                    val enter = event.key == Key.Enter || event.key == Key.NumPadEnter
+                    if (event.type == KeyEventType.KeyDown &&
+                        enter &&
+                        (event.isCtrlPressed || event.isMetaPressed) &&
+                        onSubmit != null
+                    ) {
+                        onSubmit()
+                        true
+                    } else {
+                        false
+                    }
+                }
                 .semantics { contentDescription = placeholder },
         )
     }

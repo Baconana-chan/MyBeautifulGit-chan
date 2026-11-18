@@ -190,6 +190,75 @@ class CommitMessageGeneratorTest {
         }
     }
 
+    @Test
+    fun `provider errors include the HTTP status and provider message`() = runBlocking {
+        FakeAiServer(
+            response = """{"error":{"message":"Rate limit reached for requests"}}""",
+            status = 429,
+            statusText = "Too Many Requests",
+        ).use { server ->
+            val fixture = fixture(server.endpoint)
+            val prepared = fixture.generator.prepare(
+                diff = "+line",
+                branch = "main",
+                recentSubjects = emptyList(),
+                fileCount = 1,
+            )
+
+            val error = assertFailsWith<AiGenerationException> {
+                fixture.generator.generate(prepared)
+            }
+
+            assertTrue(error.message.orEmpty().contains("HTTP 429"))
+            assertTrue(error.message.orEmpty().contains("Rate limit reached"))
+        }
+    }
+
+    @Test
+    fun `empty content reports the finish reason and token limit`() = runBlocking {
+        FakeAiServer(
+            response = """{"choices":[{"message":{"content":""},"finish_reason":"length"}]}""",
+        ).use { server ->
+            val fixture = fixture(server.endpoint)
+            val prepared = fixture.generator.prepare(
+                diff = "+line",
+                branch = "main",
+                recentSubjects = emptyList(),
+                fileCount = 1,
+            )
+
+            val error = assertFailsWith<AiGenerationException> {
+                fixture.generator.generate(prepared)
+            }
+
+            assertTrue(error.message.orEmpty().contains("HTTP 200"))
+            assertTrue(error.message.orEmpty().contains("finish_reason=length"))
+            assertTrue(error.message.orEmpty().contains("max_tokens"))
+        }
+    }
+
+    @Test
+    fun `ollama native response points to the OpenAI-compatible endpoint`() = runBlocking {
+        FakeAiServer(
+            response = """{"message":{"role":"assistant","content":"feat: x"}}""",
+        ).use { server ->
+            val fixture = fixture(server.endpoint)
+            val prepared = fixture.generator.prepare(
+                diff = "+line",
+                branch = "main",
+                recentSubjects = emptyList(),
+                fileCount = 1,
+            )
+
+            val error = assertFailsWith<AiGenerationException> {
+                fixture.generator.generate(prepared)
+            }
+
+            assertTrue(error.message.orEmpty().contains("Ollama"))
+            assertTrue(error.message.orEmpty().contains("/v1/chat/completions"))
+        }
+    }
+
     private fun fixture(endpoint: String, requestTimeout: Duration = Duration.ofSeconds(2)): Fixture {
         val dir = Files.createTempDirectory("git-chan-ai")
         val settings = AppSettings(dir.resolve("settings.properties"))
@@ -220,6 +289,8 @@ class CommitMessageGeneratorTest {
     private class FakeAiServer(
         private val response: String,
         private val delayMs: Long = 0,
+        private val status: Int = 200,
+        private val statusText: String = "OK",
     ) : AutoCloseable {
         private val server = ServerSocket(
             0,
@@ -265,7 +336,7 @@ class CommitMessageGeneratorTest {
                         requests += RecordedRequest(path, headers, body)
                         if (delayMs > 0) Thread.sleep(delayMs)
                         val bodyBytes = response.toByteArray(Charsets.UTF_8)
-                        val head = "HTTP/1.1 200 OK\r\n" +
+                        val head = "HTTP/1.1 $status $statusText\r\n" +
                             "Content-Type: application/json\r\n" +
                             "Content-Length: ${bodyBytes.size}\r\n" +
                             "Connection: close\r\n\r\n"

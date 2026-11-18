@@ -150,6 +150,7 @@ fun MockupHost(titleBar: @Composable (String, (Int) -> Unit) -> Unit) {
 fun GitChanTitleBar(
     zoomLabel: String,
     onZoom: (Int) -> Unit,
+    onHome: () -> Unit = {},
     context: String = "root@localhost:~/dev/mybeautifulgit-chan",
     version: String = "v0.4.0",
     onZoomReset: () -> Unit = {},
@@ -161,16 +162,24 @@ fun GitChanTitleBar(
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("█", fontSize = 11.sp, fontFamily = Term.mono, color = Term.green)
-        Text(
-            " GIT-CHAN ",
-            fontSize = 10.sp,
-            fontFamily = Term.mono,
-            fontWeight = FontWeight.Bold,
-            color = Term.black,
-            modifier = Modifier.background(Term.green),
-        )
-        Text(" $version", fontSize = 9.5.sp, fontFamily = Term.mono, color = Term.dim)
+        Row(
+            Modifier
+                .clickable { onHome() }
+                .a11yButton("Open start screen")
+                .a11yFocusRing(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("█", fontSize = 11.sp, fontFamily = Term.mono, color = Term.green)
+            Text(
+                " GIT-CHAN ",
+                fontSize = 10.sp,
+                fontFamily = Term.mono,
+                fontWeight = FontWeight.Bold,
+                color = Term.black,
+                modifier = Modifier.background(Term.green),
+            )
+            Text(" $version", fontSize = 9.5.sp, fontFamily = Term.mono, color = Term.dim)
+        }
         Text("  │  ", fontSize = 9.5.sp, fontFamily = Term.mono, color = Term.border)
         Text(
             context,
