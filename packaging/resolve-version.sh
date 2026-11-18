@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-raw="${INPUT_VERSION:-${GITHUB_REF_NAME:-0.1.0-dev}}"
+raw="${INPUT_VERSION:-${GITHUB_REF_NAME:-1.0.0}}"
 raw="${raw#v}"
 raw="${raw//[[:space:]]/}"
 if [[ ! "$raw" =~ ^[0-9] ]]; then
-    raw="0.1.0-dev"
+    raw="1.0.0"
 fi
 
 base="${raw%%-*}"
 base="${base%%+*}"
 if [[ ! "$base" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
-    base="0.1.0"
+    base="1.0.0"
 fi
 case "$base" in
     *.*.*) ;;

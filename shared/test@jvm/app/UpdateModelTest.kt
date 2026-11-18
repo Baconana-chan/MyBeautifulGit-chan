@@ -44,8 +44,9 @@ class UpdateModelTest {
             assertNotNull(AppVersion.parse("1.2.3-beta.10")))
         assertNull(AppVersion.parse("1.2"))
         assertNull(AppVersion.parse("v1.2.3-"))
-        assertEquals(AppVersion.CURRENT_TAG, "v0.1.0-dev")
-        assertEquals(AppVersion.current.display, "0.1.0-dev")
+        assertEquals(AppVersion.CURRENT_TAG, "v1.0.0")
+        assertEquals(AppVersion.current.display, "1.0.0")
+        assertFalse(AppVersion.current.isPrerelease)
     }
 
     @Test

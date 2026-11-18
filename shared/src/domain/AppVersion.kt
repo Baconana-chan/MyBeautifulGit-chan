@@ -32,7 +32,7 @@ data class AppVersion(
     }
 
     companion object {
-        const val CURRENT_TAG = "v0.1.0-dev"
+        const val CURRENT_TAG = "v1.0.0"
         val current: AppVersion = requireNotNull(parse(CURRENT_TAG))
 
         fun parse(value: String?): AppVersion? {

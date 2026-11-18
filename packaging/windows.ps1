@@ -6,8 +6,8 @@ $ErrorActionPreference = "Stop"
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $appName = "MyBeautifulGit-chan"
-$appVersion = if ($env:APP_VERSION) { $env:APP_VERSION } else { "0.1.0-dev" }
-$packageVersion = if ($env:PACKAGE_VERSION) { $env:PACKAGE_VERSION } else { "0.1.0" }
+$appVersion = if ($env:APP_VERSION) { $env:APP_VERSION } else { "1.0.0" }
+$packageVersion = if ($env:PACKAGE_VERSION) { $env:PACKAGE_VERSION } else { "1.0.0" }
 $channel = if ($env:RELEASE_CHANNEL) { $env:RELEASE_CHANNEL } else { "chan" }
 $dist = Join-Path $root "dist"
 $inputDir = Join-Path $root "build\packaging\input"
@@ -67,7 +67,7 @@ $common = @(
     "--name", $appName,
     "--app-version", $packageVersion,
     "--vendor", "Baconana-chan",
-    "--description", "Terminal-flavored Git client",
+    "--description", "$appName - terminal-flavored Git client",
     "--copyright", "GPL-2.0-only",
     "--input", $inputDir,
     "--main-jar", "desktopApp-jvm.jar",

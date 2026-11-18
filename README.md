@@ -9,8 +9,8 @@ the consequences, and a way back.
 The interface is a black CRT terminal with phosphor-green monospace text. Dangerous operations are
 not hidden behind artificial restrictions. They are explained, previewed, and backed up.
 
-> **Status:** early development (`v0.1.0-dev`). Desktop is the primary platform; Android is planned
-> after the desktop 1.0 release. Expect UI and APIs to change.
+> **Status:** `v1.0.0`. Desktop is the primary platform; Android is planned for a later release.
+> APIs may still change between minor versions.
 
 <table align="center">
   <tr>
@@ -23,7 +23,7 @@ not hidden behind artificial restrictions. They are explained, previewed, and ba
   </tr>
 </table>
 
-<p align="center"><em>Screenshots from the desktop app (v0.1.0-dev): start screen, changes and diff,
+<p align="center"><em>Screenshots from the desktop app (v1.0.0): start screen, changes and diff,
 patches, log and inspect.</em></p>
 
 ## Contents
@@ -457,6 +457,10 @@ Detailed milestones and acceptance criteria live in [TODO.md](./TODO.md) (curren
   dangerous operations, backup refs, reflog, filter-repo recovery and troubleshooting.
 - [website/TODO.md](./website/TODO.md) — site roadmap: AI commit-message proxy, site accounts and
   the OAuth broker, per-provider review, deploy and operations.
+- [forge/TODO.md](./forge/TODO.md) — own Git forge: architecture, load budget, phases, acceptance
+  criteria and reference notes on self-hosted alternatives.
+- [ci/TODO.md](./ci/TODO.md) — CI for exotic operating systems: VM-first architecture, OS matrix,
+  phases, and a separate research block for a native Haiku isolator.
 - [TODO-1-1.md](./TODO-1-1.md) — 1.1 roadmap: GitHub/GitLab adapters, provider foundation,
   contribution UI, German localization and explicitly deferred work.
 - [TODO.md](./TODO.md) — product manifest, architecture, milestones and acceptance criteria.

@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Package version label (for example 0.1.0 or 0.1.0-kun.1)"
+        description: "Package version label (for example 1.0.0 or 1.0.0-kun.1)"
         required: false
-        default: "0.1.0-dev"
+        default: "1.0.0"
   push:
     tags:
       - "v*"

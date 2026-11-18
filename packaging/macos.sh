@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="MyBeautifulGit-chan"
-APP_VERSION="${APP_VERSION:-0.1.0-dev}"
-PACKAGE_VERSION="${PACKAGE_VERSION:-0.1.0}"
+APP_VERSION="${APP_VERSION:-1.0.0}"
+PACKAGE_VERSION="${PACKAGE_VERSION:-1.0.0}"
 CHANNEL="${RELEASE_CHANNEL:-chan}"
 ARCH="${PACKAGE_ARCH:-$(uname -m)}"
 case "$ARCH" in
@@ -43,7 +43,7 @@ common=(
     --name "$APP_NAME"
     --app-version "$PACKAGE_VERSION"
     --vendor "Baconana-chan"
-    --description "Terminal-flavored Git client"
+    --description "$APP_NAME — terminal-flavored Git client"
     --copyright "GPL-2.0-only"
     --input "$INPUT"
     --main-jar "desktopApp-jvm.jar"

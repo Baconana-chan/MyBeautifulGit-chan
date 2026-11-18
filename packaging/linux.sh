@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="MyBeautifulGit-chan"
 LINUX_PACKAGE_NAME="mybeautifulgit-chan"
-APP_VERSION="${APP_VERSION:-0.1.0-dev}"
-PACKAGE_VERSION="${PACKAGE_VERSION:-0.1.0}"
+APP_VERSION="${APP_VERSION:-1.0.0}"
+PACKAGE_VERSION="${PACKAGE_VERSION:-1.0.0}"
 CHANNEL="${RELEASE_CHANNEL:-chan}"
 ARCH="${PACKAGE_ARCH:-$(uname -m)}"
 case "$ARCH" in
@@ -51,7 +51,7 @@ common=(
     --name "$APP_NAME"
     --app-version "$PACKAGE_VERSION"
     --vendor "Baconana-chan"
-    --description "Terminal-flavored Git client"
+    --description "$APP_NAME — terminal-flavored Git client"
     --copyright "GPL-2.0-only"
     --input "$INPUT"
     --main-jar "desktopApp-jvm.jar"
@@ -77,7 +77,7 @@ linux_common=(
     --name "$APP_NAME"
     --app-version "$PACKAGE_VERSION"
     --vendor "Baconana-chan"
-    --description "Terminal-flavored Git client"
+    --description "$APP_NAME — terminal-flavored Git client"
     --copyright "GPL-2.0-only"
     --dest "$DIST"
     --linux-package-name "$LINUX_PACKAGE_NAME"
@@ -107,7 +107,7 @@ chmod 755 "$APPDIR/AppRun"
 cat > "$APPDIR/$LINUX_PACKAGE_NAME.desktop" <<EOF
 [Desktop Entry]
 Name=$APP_NAME
-Comment=Terminal-flavored Git client
+Comment=Terminal-flavored Git client for Windows, macOS and Linux
 Exec=$APP_NAME
 Icon=$LINUX_PACKAGE_NAME
 Terminal=false

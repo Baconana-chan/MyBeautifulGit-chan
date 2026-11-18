@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.Slider
@@ -2731,7 +2732,9 @@ private fun DiffPanel(
             }
         } else if (raw.startsWith("git diff failed") || raw.startsWith("Binary file") || raw.startsWith("File is too large")) {
             Box(Modifier.weight(1f).fillMaxWidth().padding(10.dp)) {
-                Text(raw, fontSize = 9.sp, fontFamily = Term.mono, color = Term.amber)
+                SelectionContainer {
+                    Text(raw, fontSize = 9.sp, fontFamily = Term.mono, color = Term.amber)
+                }
             }
         } else {
             val parsed = remember(raw) { parsePatch(raw) }
@@ -2740,17 +2743,19 @@ private fun DiffPanel(
             }
             val discardEntry = controller.visibleEntries
                 .firstOrNull { it.path == controller.selectedPath }
-            LazyColumn(Modifier.weight(1f).fillMaxWidth().padding(vertical = 4.dp)) {
-                itemsIndexed(rows) { _, row ->
-                    DiffViewContentRow(
-                        row = row,
-                        parsed = parsed,
-                        staged = controller.selectedStaged,
-                        controller = controller,
-                        scope = scope,
-                        discardEntry = discardEntry,
-                        onDiscard = onDiscard,
-                    )
+            SelectionContainer(Modifier.weight(1f).fillMaxWidth()) {
+                LazyColumn(Modifier.fillMaxSize().padding(vertical = 4.dp)) {
+                    itemsIndexed(rows) { _, row ->
+                        DiffViewContentRow(
+                            row = row,
+                            parsed = parsed,
+                            staged = controller.selectedStaged,
+                            controller = controller,
+                            scope = scope,
+                            discardEntry = discardEntry,
+                            onDiscard = onDiscard,
+                        )
+                    }
                 }
             }
         }
@@ -4939,20 +4944,22 @@ private fun CommitDiffTab(
                 Text(strings.commitDiffEmpty, fontSize = 8.5.sp, fontFamily = Term.mono, color = Term.faint)
             }
         } else {
-            LazyColumn(Modifier.fillMaxWidth().weight(1f)) {
-                items(rows) { row ->
-                    when (row) {
-                        is DiffViewRow.Full -> CommitDiffLineRow(row.view)
-                        is DiffViewRow.Split -> CommitDiffLineRow(row.left ?: row.right)
-                        is DiffViewRow.Omitted -> FullTextDiffRow(
-                            DiffLineView(
-                                line = org.baconana.mybeautifulgit_chan.domain.DiffLine(
+            SelectionContainer(Modifier.fillMaxWidth().weight(1f)) {
+                LazyColumn(Modifier.fillMaxSize()) {
+                    items(rows) { row ->
+                        when (row) {
+                            is DiffViewRow.Full -> CommitDiffLineRow(row.view)
+                            is DiffViewRow.Split -> CommitDiffLineRow(row.left ?: row.right)
+                            is DiffViewRow.Omitted -> FullTextDiffRow(
+                                DiffLineView(
+                                    line = org.baconana.mybeautifulgit_chan.domain.DiffLine(
+                                        text = "… ${row.count} hidden",
+                                        kind = DiffLineKind.Meta,
+                                    ),
                                     text = "… ${row.count} hidden",
-                                    kind = DiffLineKind.Meta,
                                 ),
-                                text = "… ${row.count} hidden",
-                            ),
-                        )
+                            )
+                        }
                     }
                 }
             }
